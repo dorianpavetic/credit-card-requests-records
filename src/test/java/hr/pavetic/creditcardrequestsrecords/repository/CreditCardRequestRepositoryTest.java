@@ -4,8 +4,11 @@ import hr.pavetic.creditcardrequestsrecords.dto.PersonDto;
 import hr.pavetic.creditcardrequestsrecords.model.Status;
 import hr.pavetic.creditcardrequestsrecords.repository.impl.CreditCardRequestRepositoryImpl;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.awaitility.Awaitility;
+import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.util.Pair;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,6 +29,7 @@ class CreditCardRequestRepositoryTest {
     private final CreditCardRequestRepository repository =
             new CreditCardRequestRepositoryImpl(REQUESTS_FOLDER);
 
+    @BeforeAll
     @AfterAll
     static void cleanupResources() throws IOException {
         FileUtils.deleteDirectory(Paths.get(REQUESTS_FOLDER).toFile());
@@ -43,6 +47,11 @@ class CreditCardRequestRepositoryTest {
         Assertions.assertTrue(path.toString().startsWith(REQUESTS_FOLDER + "/" + personDto.getOib()));
         Assertions.assertTrue(path.toString().endsWith(".txt"));
         Assertions.assertTrue(Files.exists(path));
+
+        // Add delay, as sometimes it may happen that values have same milliseconds in the
+        // name, resulting that second overwrites the first file, resulting in only 1
+        // request for given person
+        Awaitility.await().pollDelay(Duration.ONE_MILLISECOND).until(() -> true);
 
         Path path2 = repository.writePersonDtoRequest(personDto);
         Assertions.assertTrue(path2.toString().startsWith(REQUESTS_FOLDER + "/" + personDto.getOib()));
@@ -75,6 +84,11 @@ class CreditCardRequestRepositoryTest {
         Assertions.assertTrue(path.toString().startsWith(REQUESTS_FOLDER + "/" + personDto.getOib()));
         Assertions.assertTrue(path.toString().endsWith(".txt"));
         Assertions.assertTrue(Files.exists(path));
+
+        // Add delay, as sometimes it may happen that values have same milliseconds in the
+        // name, resulting that second overwrites the first file, resulting in only 1
+        // request for given person
+        Awaitility.await().pollDelay(Duration.ONE_MILLISECOND).until(() -> true);
 
         Path path2 = repository.writePersonDtoRequest(personDto);
         Assertions.assertTrue(path2.toString().startsWith(REQUESTS_FOLDER + "/" + personDto.getOib()));
